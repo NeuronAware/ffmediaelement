@@ -207,6 +207,34 @@
             return retrievedBitmap;
         }).ConfigureAwait(true);
 
+        /// <summary>
+        /// Captures the currently displayed video image and returns a WriteableBitmap bitmap.
+        /// </summary>
+        /// <returns>The WriteableBitmap copied from the video renderer.</returns>
+        public ConfiguredTaskAwaitable<WriteableBitmap> CaptureWriteableBitmapAsync() => Task.Run(async () =>
+        {
+            WriteableBitmap retrievedBitmap = null;
+
+            // Since VideoView might be hosted on a different dispatcher,
+            // we use the custom InvokeAsync method
+            var videoView = VideoView;
+            if (videoView == null)
+                return null;
+
+            await videoView.InvokeAsync(() =>
+            {
+                var source = videoView.Source?.Clone() as BitmapSource;
+                if (source == null)
+                    return;
+
+                source.Freeze();
+                retrievedBitmap = new WriteableBitmap(source);
+                retrievedBitmap.Freeze();
+            });
+
+            return retrievedBitmap;
+        }).ConfigureAwait(true);
+
         /// <inheritdoc />
         public void Dispose() => Dispose(true);
 
